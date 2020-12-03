@@ -29,6 +29,42 @@ void setup() {
 }
 
 void loop() {
+
+  // button states
+  int gState = digitalRead(greenButton);
+  int bState = digitalRead(blueButton);
+  int enterState = digitalRead(enterButton);
+  int rState = digitalRead(redButton);
+
+  if (rState){
+    tone(speakerPin, notes[5], 200);
+    RGB_color(226,59,255);
+    delay(500);
+    RGB_color(0, 0, 0);
+    Serial.write(2);
+  }
+
+  if (gState){
+    tone(speakerPin, notes[1], 200);
+    RGB_color(255,193,59);
+    delay(500);
+    RGB_color(0, 0, 0);
+    Serial.write(3);
+  }
+
+  if (bState){
+    tone(speakerPin, notes[2], 200);
+    RGB_color(59,118,255);
+    delay(500);
+    RGB_color(0, 0, 0);
+    Serial.write(4);
+  }
+
+  if (enterState){
+    tone(speakerPin, notes[1], 100);
+    delay(120);
+    Serial.write(5);
+  }
   
   // get info from processing  
   if(Serial.available()>0){
@@ -41,12 +77,20 @@ void loop() {
     
     else if (state == 'P'){
       digitalWrite(greenPin, LOW);
-      delay(1000);
+      delay(1000); // blink without delay
       playPassword();
     }
 
-    else if (state == 'I'){
-      takeInput();
+//    else if (state == 'I'){
+//      takeInput();
+//    }
+
+    else if (state == 'Z'){
+      enterZoomTrue();
+    }
+
+    else if (state == 'N'){
+      enterZoomFalse();
     }
   }
 }
@@ -61,58 +105,55 @@ void RGB_color(int red, int green, int blue){
 void playPassword(){
   if (passwordState == true){
     // play the first key
-    RGB_color(238,201,170);
+    RGB_color(0, 0, 0);
+    RGB_color(59,118,255);
     tone(speakerPin, notes[1], 500);
     delay(1500);
     // play the second key
-    RGB_color(10,255,0);
+    RGB_color(0, 0, 0);
+    RGB_color(226,59,255);
     tone(speakerPin, notes[2], 500);
     delay(1500);
     // play the third key
-    RGB_color(10, 216, 230);
+    RGB_color(0, 0, 0);
+    RGB_color(255,193,59);
     tone(speakerPin, notes[3], 500);
     delay(1500);
     // stop and send data to processing
     RGB_color(0, 0, 0);
     passwordState = false;
-    Serial.write(1);
   }
 }
 
-void takeInput(){  
-  // button states
-  int gState = digitalRead(greenButton);
-  int bState = digitalRead(blueButton);
-  int enterState = digitalRead(enterButton);
-  int rState = digitalRead(redButton);
-
-  if (rState){
-    tone(speakerPin, notes[5], 200);
-    RGB_color(100,101,170);
+void enterZoomTrue(){
+  for(int note = 3; note < 7; note++){
+    tone(speakerPin, notes[note], 300);
   }
+    digitalWrite(greenPin, HIGH);
+    delay(500);
+    digitalWrite(greenPin, LOW);
+    Serial.write(1);
+}
 
-  if (gState){
-    tone(speakerPin, notes[1], 200);
-    RGB_color(238,201,170);
+void enterZoomFalse(){
+  for(int note = 0; note < 2; note++){
+    tone(speakerPin, notes[note], 200);
   }
-
-  if (bState){
-    tone(speakerPin, notes[2], 200);
-    RGB_color(10,255,0);
-  }
+    digitalWrite(redPin, HIGH);
+    delay(500);
+    digitalWrite(redPin, LOW);
 }
 
 
 /*
 
-
   PROCESSING CODE
-
 
 import processing.serial.*;
 Serial myPort;
 int fromArduino;
 ArrayList<Integer> password = new ArrayList<Integer>();
+int[] rightPassword;
 
 void setup(){
   size(960,720);
@@ -120,6 +161,7 @@ void setup(){
   String portname=Serial.list()[1];
   println(portname);
   myPort = new Serial(this,portname,9600);
+  rightPassword = new int []{4, 2, 3};
 }
 
 void draw(){
@@ -129,14 +171,53 @@ void draw(){
     delay(1000);
     myPort.write('P');
   }
-  if (fromArduino == 1){
-    myPort.write('I');
-    password.add(fromArduino);
-  }
 }
 
 void serialEvent(Serial myPort){
-  fromArduino = myPort.read();    
+    fromArduino = myPort.read();
+    
+    if (fromArduino == 1){
+      int changeScene = 1;
+    }
+  
+    if (fromArduino == 2){
+      password.add(fromArduino);
+    }
+  
+    else if (fromArduino == 3){
+      password.add(fromArduino);
+    }
+  
+    else if (fromArduino == 4){
+      password.add(fromArduino);
+    }
+  
+    else if (fromArduino == 5){
+      if(passwordCheck()){
+       myPort.write('Z'); // switch the scene
+      }
+      else{
+        myPort.write('N'); // repeat the input
+      }
+    password.clear();
+    }
+}
+  
+
+// check password functions
+boolean passwordCheck(){
+  if (password.size()==rightPassword.length){
+    printArray(password);
+    for (int element = 0; element < password.size(); element++){
+      if (password.get(element) != rightPassword[element]){
+         return false;
+      }
+    }
+  }
+  else {
+    return false;
+  }
+  return true;
 }
 
 */

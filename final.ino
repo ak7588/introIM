@@ -15,6 +15,7 @@ int redPin = 9;
 int greenPin = 10;
 
 bool passwordState = true;
+bool isRight = false;
 
 void setup() {
   // put your setup code here, to run once:
@@ -68,22 +69,21 @@ void loop() {
   
   // get info from processing  
   if(Serial.available()>0){
+    
     char state = Serial.read();
     
     if (state == 'S'){ // if turned on
       tone(speakerPin, notes[0], 200); // play start sound
       digitalWrite(greenPin, HIGH);
+      delay(700);
     }
     
     else if (state == 'P'){
       digitalWrite(greenPin, LOW);
-      delay(1000); // blink without delay
+      delay(500); // blink without delay
+      passwordState = true;
       playPassword();
     }
-
-//    else if (state == 'I'){
-//      takeInput();
-//    }
 
     else if (state == 'Z'){
       enterZoomTrue();
@@ -121,11 +121,13 @@ void playPassword(){
     delay(1500);
     // stop and send data to processing
     RGB_color(0, 0, 0);
+    Serial.write(6);
     passwordState = false;
   }
 }
 
 void enterZoomTrue(){
+  isRight = true;
   for(int note = 3; note < 7; note++){
     tone(speakerPin, notes[note], 300);
   }
@@ -136,12 +138,14 @@ void enterZoomTrue(){
 }
 
 void enterZoomFalse(){
-  for(int note = 0; note < 2; note++){
+  if (!isRight){
+    for(int note = 0; note < 2; note++){
     tone(speakerPin, notes[note], 200);
   }
     digitalWrite(redPin, HIGH);
     delay(500);
     digitalWrite(redPin, LOW);
+  }
 }
 
 

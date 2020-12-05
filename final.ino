@@ -138,7 +138,7 @@ void enterZoomTrue(){
 }
 
 void enterZoomFalse(){
-  if (!isRight){
+  if (isRight == false){
     for(int note = 0; note < 2; note++){
     tone(speakerPin, notes[note], 200);
   }
